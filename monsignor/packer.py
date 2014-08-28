@@ -15,6 +15,9 @@ class Packer(object):
         self.pack_int(len(s))
         self.buf.write(s)
 
+    def pack_byte(self, b):
+        self.buf.write(struct.pack("b", b))
+
     def pack_int(self, i):
         # XXX more compact encoding
         self.buf.write(struct.pack("l", i))
@@ -44,6 +47,12 @@ class Unpacker(object):
         self._check_size(SIZE_OF_LONG)
         retval, = struct.unpack("l", self.buf[self.pos:self.pos + SIZE_OF_LONG])
         self.pos += SIZE_OF_LONG
+        return retval
+
+    def unpack_byte(self):
+        self._check_size(1)
+        retval, = struct.unpack("b", self.buf[self.pos:self.pos + 1])
+        self.pos += 1
         return retval
 
     def done(self):

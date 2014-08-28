@@ -10,10 +10,11 @@ from twisted.internet import reactor
 from twisted.internet.defer import inlineCallbacks, Deferred
 from monsignor.server import MonsignorServerFactory
 from monsignor.client import MonsignorClientFactory
+from monsignor.msg import Message
 
 log.startLogging(sys.stderr, setStdout=0)
 
-class TestServerClient(TestCase):
+class TestServerClient(TestCase):    
     @inlineCallbacks
     def test_server_basic(self):
         endpoint = TCP4ServerEndpoint(reactor, 0)
@@ -21,7 +22,27 @@ class TestServerClient(TestCase):
         port = yield endpoint.listen(server)
         addr = port.getHost()
         client_endpoint = TCP4ClientEndpoint(reactor, "localhost", addr.port)
-        client_prot = yield client_endpoint.connect(MonsignorClientFactory())
+        client_prot = yield client_endpoint.connect(MonsignorClientFactory("bob"))
+        d = Deferred()
+        client_prot._waiting_deferred = d
+        client_prot.disconnect()
+        yield d
+        yield port.stopListening()
+
+    @inlineCallbacks
+    def test_send_message_to_self(self):
+        endpoint = TCP4ServerEndpoint(reactor, 0)
+        server = MonsignorServerFactory()
+        port = yield endpoint.listen(server)
+        addr = port.getHost()
+        client_endpoint = TCP4ClientEndpoint(reactor, "localhost", addr.port)
+        client_prot = yield client_endpoint.connect(MonsignorClientFactory("bob"))
+
+        client_prot.send_message(Message("bob", "foo"))
+        res = yield client_prot.poll_message()
+        assert res.receipent == "bob"
+        assert res.content == "foo"
+
         d = Deferred()
         client_prot._waiting_deferred = d
         client_prot.disconnect()

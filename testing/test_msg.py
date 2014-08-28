@@ -1,8 +1,10 @@
 
-from monsignor.msg import Message
+from monsignor.msg import Message, unpack
 
 class TestMsg(object):
     def test_basic_msg(self):
-        msg = Message("some content")
+        msg = Message("bob", "some content")
         buf = msg.pack()
-        assert Message.unpack(buf).content == "some content"
+        remsg = unpack(buf) 
+        assert isinstance(remsg, Message)
+        assert remsg.content == "some content"
