@@ -48,3 +48,28 @@ class TestServerClient(TestCase):
         client_prot.disconnect()
         yield d
         yield port.stopListening()
+
+    @inlineCallbacks
+    def test_send_messages_two_clients(self):
+        endpoint = TCP4ServerEndpoint(reactor, 0)
+        server = MonsignorServerFactory()
+        port = yield endpoint.listen(server)
+        addr = port.getHost()
+        client_endpoint = TCP4ClientEndpoint(reactor, "localhost", addr.port)
+        client_prot = yield client_endpoint.connect(MonsignorClientFactory("bob"))
+        client_prot2 = yield client_endpoint.connect(MonsignorClientFactory("alice"))
+        client_prot.send_message(Message("alice", "foo"))
+        res = yield client_prot2.poll_message()
+        
+        assert res.receipent == "alice"
+        assert res.content == "foo"
+
+        d = Deferred()
+        client_prot._waiting_deferred = d
+        client_prot.disconnect()
+        yield d
+        d = Deferred()
+        client_prot2._waiting_deferred = d
+        client_prot2.disconnect()
+        yield d
+        yield port.stopListening()
