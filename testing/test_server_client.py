@@ -59,10 +59,17 @@ class TestServerClient(TestCase):
         client_prot = yield client_endpoint.connect(MonsignorClientFactory("bob"))
         client_prot2 = yield client_endpoint.connect(MonsignorClientFactory("alice"))
         client_prot.send_message(Message("alice", "foo"))
+        client_prot.send_message(Message("alice", "bar"))
+        client_prot.send_message(Message("alice", "baz"))
         res = yield client_prot2.poll_message()
-        
         assert res.receipent == "alice"
         assert res.content == "foo"
+        res = yield client_prot2.poll_message()
+        assert res.receipent == "alice"
+        assert res.content == "bar"
+        res = yield client_prot2.poll_message()
+        assert res.receipent == "alice"
+        assert res.content == "baz"
 
         d = Deferred()
         client_prot._waiting_deferred = d

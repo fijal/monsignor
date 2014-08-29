@@ -1,28 +1,32 @@
 
+from collections import deque
 from twisted.internet.protocol import ClientFactory
-from twisted.internet.defer import Deferred
+from twisted.internet.defer import Deferred, succeed
 from monsignor.msg import LoginMessage, unpack
 from monsignor.protocol import MonsignorProtocol
 
 class MonsignorClientProtocol(MonsignorProtocol):
     def __init__(self, factory, username):
-        self.factory = factory
         self.username = username
-        self.msgs = []
+        self.msgs = deque()
 
     def disconnect(self):
         self.transport.loseConnection()
 
     def poll_message(self):
-        self._msg_deferred = Deferred()
-        return self._msg_deferred
+        if not self.msgs:
+            self._msg_deferred = Deferred()
+            return self._msg_deferred
+        else:
+            return succeed(self.msgs.popleft())
 
     def stringReceived(self, data):
         if self._msg_deferred is not None:
-            self._msg_deferred.callback(unpack(data))
+            d = self._msg_deferred
             self._msg_deferred = None
+            d.callback(unpack(data))
         else:
-            xxx
+            self.msgs.append(unpack(data))
 
     def connectionMade(self):
         self.send_message(LoginMessage(self.username))
