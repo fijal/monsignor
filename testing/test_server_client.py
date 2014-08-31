@@ -2,8 +2,6 @@
 """ Integration tests that spawn real TCP connections
 """
 
-import sys
-from twisted.python import log
 from twisted.trial.unittest import TestCase
 from twisted.internet.endpoints import TCP4ServerEndpoint, TCP4ClientEndpoint
 from twisted.internet import reactor
@@ -11,8 +9,6 @@ from twisted.internet.defer import inlineCallbacks, Deferred
 from monsignor.server import MonsignorServerFactory
 from monsignor.client import MonsignorClientFactory
 from monsignor.msg import Message
-
-log.startLogging(sys.stderr, setStdout=0)
 
 class TestServerClient(TestCase):    
     @inlineCallbacks

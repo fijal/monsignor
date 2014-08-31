@@ -1,7 +1,7 @@
 
 from monsignor.packer import Packer, Unpacker, UnpackingError
 
-LOGIN, CONTENT, LOGIN_SUCCESSFUL = range(1, 4)
+LOGIN, CONTENT, LOGIN_REPLY = range(1, 4)
 
 class BaseMessage(object):
     def __init__(self):
@@ -17,9 +17,10 @@ def unpack(buf):
     elif msg_type == LOGIN:
         username = u.unpack_string()
         retval = LoginMessage(username)
-    elif msg_type == LOGIN_SUCCESSFUL:
+    elif msg_type == LOGIN_REPLY:
+        success = u.unpack_byte()
         username = u.unpack_string()
-        retval = LoginSuccessful(username)
+        retval = LoginReply(success, username)
     else:
         raise UnpackingError("wrong message type %d" % msg_type)
     if not u.done():
@@ -48,12 +49,14 @@ class LoginMessage(BaseMessage):
         p.pack_string(self.username)
         return p.finish()
 
-class LoginSuccessful(BaseMessage):
-    def __init__(self, username):
+class LoginReply(BaseMessage):
+    def __init__(self, success, username):
         self.username = username
+        self.success = success
 
     def pack(self):
         p = Packer()
-        p.pack_byte(LOGIN_SUCCESSFUL)
+        p.pack_byte(LOGIN_REPLY)
+        p.pack_byte(self.success)
         p.pack_string(self.username)
         return p.finish()
