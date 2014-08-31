@@ -1,6 +1,6 @@
 
 from twisted.internet.protocol import ServerFactory
-from monsignor.msg import unpack, LoginMessage, Message
+from monsignor.msg import unpack, LoginMessage, Message, LoginSuccessful
 from monsignor.protocol import MonsignorProtocol
 
 class MonsignorServerProtocol(MonsignorProtocol):    
@@ -11,6 +11,7 @@ class MonsignorServerProtocol(MonsignorProtocol):
         msg = unpack(data)
         if isinstance(msg, LoginMessage):
             self.factory.clients[msg.username] = self
+            self.send_message(LoginSuccessful(msg.username))
         elif isinstance(msg, Message):
             self.handle_message(msg)
         else:

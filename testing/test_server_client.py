@@ -40,6 +40,8 @@ class TestServerClient(TestCase):
 
         client_prot.send_message(Message("bob", "foo"))
         res = yield client_prot.poll_message()
+        assert res.username == "bob"
+        res = yield client_prot.poll_message()
         assert res.receipent == "bob"
         assert res.content == "foo"
 
@@ -58,6 +60,10 @@ class TestServerClient(TestCase):
         client_endpoint = TCP4ClientEndpoint(reactor, "localhost", addr.port)
         client_prot = yield client_endpoint.connect(MonsignorClientFactory("bob"))
         client_prot2 = yield client_endpoint.connect(MonsignorClientFactory("alice"))
+        res = yield client_prot2.poll_message()
+        assert res.username == "alice"
+        res = yield client_prot.poll_message()
+        assert res.username == "bob"
         client_prot.send_message(Message("alice", "foo"))
         client_prot.send_message(Message("alice", "bar"))
         client_prot.send_message(Message("alice", "baz"))

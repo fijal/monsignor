@@ -18,6 +18,8 @@ class TestServerClientNoNet(TestCase):
         finished2 = loopbackAsync(alice_prot, alice)
         bob.send_message(Message("alice", "content"))
         result = yield alice.poll_message()
+        assert result.username == "alice"
+        result = yield alice.poll_message()
         assert result.receipent == "alice"
         assert result.content == "content"
         bob.disconnect()

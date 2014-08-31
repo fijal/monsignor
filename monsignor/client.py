@@ -6,6 +6,8 @@ from monsignor.msg import LoginMessage, unpack
 from monsignor.protocol import MonsignorProtocol
 
 class MonsignorClientProtocol(MonsignorProtocol):
+    _msg_deferred = None
+    
     def __init__(self, factory, username):
         self.username = username
         self.msgs = deque()
