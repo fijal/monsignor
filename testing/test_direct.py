@@ -50,8 +50,12 @@ class TestServerClientNoNet(TestCase):
     def test_not_logged_in(self):
         fact = MonsignorServerFactory({})
         finished, bob = get_connection(fact, "bob", "p")
-        bob.disconnect()
         result = yield bob.poll_message()
         assert not result.success
         assert result.username == "Unknown user or wrong password"
+        bob.send_message(Message("alice", "content"))
+        result = yield bob.poll_message()
+        assert not result.success
+        assert result.reason == "Not logged in"
+        bob.disconnect()
         yield finished

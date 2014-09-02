@@ -27,7 +27,10 @@ class MonsignorServerProtocol(MonsignorProtocol):
             self.send_message(LoginReply(True, msg.username))
             return
         # for any other message, check if it's logged in
-        
+        if not self.username:
+            self.send_message(MessageReply(False, "Not logged in"))
+            return
+
         if isinstance(msg, Message):
             self.handle_message(msg)
         else:
