@@ -1,6 +1,7 @@
 
 from twisted.internet.protocol import ServerFactory
-from monsignor.msg import unpack, LoginMessage, Message, LoginReply
+from monsignor.msg import unpack, LoginMessage, Message, LoginReply,\
+     MessageReply
 from monsignor.protocol import MonsignorProtocol
 
 class MonsignorServerProtocol(MonsignorProtocol):    
@@ -21,8 +22,10 @@ class MonsignorServerProtocol(MonsignorProtocol):
         try:
             peer = self.factory.clients[msg.receipent]
         except KeyError:
-            xxx
-        peer.send_message(msg)
+            self.send_message(MessageReply(False))
+        else:
+            self.send_message(MessageReply(True))
+            peer.send_message(msg)
 
 class MonsignorServerFactory(ServerFactory):
     def __init__(self):

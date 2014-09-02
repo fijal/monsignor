@@ -33,3 +33,18 @@ class TestServerClientNoNet(TestCase):
         alice.disconnect()
         yield finished
         yield finished2
+
+    @inlineCallbacks
+    def test_missing_receipent(self):
+        fact = MonsignorServerFactory()
+        finished, bob = get_connection(fact, "bob")
+        result = yield bob.poll_message()
+        assert result.username == "bob"
+        bob.send_message(Message("alice", "content"))
+        result = yield bob.poll_message()
+        assert not result.success
+        bob.disconnect()
+        yield finished
+
+    #def test_not_logged_in(self):
+    #    xxx

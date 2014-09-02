@@ -8,7 +8,7 @@ from twisted.internet import reactor
 from twisted.internet.defer import inlineCallbacks, Deferred
 from monsignor.server import MonsignorServerFactory
 from monsignor.client import MonsignorClientFactory
-from monsignor.msg import Message
+from monsignor.msg import Message, MessageReply
 
 class TestServerClient(TestCase):    
     @inlineCallbacks
@@ -37,6 +37,9 @@ class TestServerClient(TestCase):
         client_prot.send_message(Message("bob", "foo"))
         res = yield client_prot.poll_message()
         assert res.username == "bob"
+        res = yield client_prot.poll_message()
+        assert isinstance(res, MessageReply)
+        assert res.success
         res = yield client_prot.poll_message()
         assert res.receipent == "bob"
         assert res.content == "foo"

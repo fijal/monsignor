@@ -55,5 +55,8 @@ class Unpacker(object):
         self.pos += 1
         return retval
 
+    def unpack_bool(self):
+        return bool(self.unpack_byte())
+
     def done(self):
         return self.pos == len(self.buf)
