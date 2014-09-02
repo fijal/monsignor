@@ -10,17 +10,17 @@ from monsignor.msg import Message
 
 log.startLogging(sys.stderr, setStdout=0)
 
-def get_connection(server_fact, name):
+def get_connection(server_fact, name, password):
     server_prot = server_fact.buildProtocol(None)
-    client_prot = MonsignorClientProtocol(None, name)
+    client_prot = MonsignorClientProtocol(name, password)
     return loopbackAsync(server_prot, client_prot), client_prot
 
 class TestServerClientNoNet(TestCase):
     @inlineCallbacks
     def test_basic_message(self):
-        fact = MonsignorServerFactory()
-        finished, bob = get_connection(fact, "bob")
-        finished2, alice = get_connection(fact, "alice")
+        fact = MonsignorServerFactory({"bob": "p", "alice": "p2"})
+        finished, bob = get_connection(fact, "bob", "p")
+        finished2, alice = get_connection(fact, "alice", "p2")
         result = yield alice.poll_message()
         assert result.username == "alice"
         result = yield bob.poll_message()
@@ -36,8 +36,8 @@ class TestServerClientNoNet(TestCase):
 
     @inlineCallbacks
     def test_missing_receipent(self):
-        fact = MonsignorServerFactory()
-        finished, bob = get_connection(fact, "bob")
+        fact = MonsignorServerFactory({"bob": "p"})
+        finished, bob = get_connection(fact, "bob", "p")
         result = yield bob.poll_message()
         assert result.username == "bob"
         bob.send_message(Message("alice", "content"))
@@ -46,5 +46,12 @@ class TestServerClientNoNet(TestCase):
         bob.disconnect()
         yield finished
 
-    #def test_not_logged_in(self):
-    #    xxx
+    @inlineCallbacks
+    def test_not_logged_in(self):
+        fact = MonsignorServerFactory({})
+        finished, bob = get_connection(fact, "bob", "p")
+        bob.disconnect()
+        result = yield bob.poll_message()
+        assert not result.success
+        assert result.username == "Unknown user or wrong password"
+        yield finished

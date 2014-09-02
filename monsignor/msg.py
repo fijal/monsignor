@@ -16,10 +16,12 @@ def unpack(buf):
         retval = Message(receipent, content)
     elif msg_type == CONTENT_REPLY:
         success = u.unpack_byte()
-        retval = MessageReply(success)
+        reason = u.unpack_string()
+        retval = MessageReply(success, reason)
     elif msg_type == LOGIN:
         username = u.unpack_string()
-        retval = LoginMessage(username)
+        password = u.unpack_string()
+        retval = LoginMessage(username, password)
     elif msg_type == LOGIN_REPLY:
         success = u.unpack_bool()
         username = u.unpack_string()
@@ -43,23 +45,27 @@ class Message(BaseMessage):
         return p.finish()
 
 class MessageReply(BaseMessage):
-    def __init__(self, success):
+    def __init__(self, success, reason):
         self.success = success
+        self.reason = reason
 
     def pack(self):
         p = Packer()
         p.pack_byte(CONTENT_REPLY)
         p.pack_byte(self.success)
+        p.pack_string(self.reason)
         return p.finish()
 
 class LoginMessage(BaseMessage):
-    def __init__(self, username):
+    def __init__(self, username, password):
         self.username = username
+        self.password = password
     
     def pack(self):
         p = Packer()
         p.pack_byte(LOGIN)
         p.pack_string(self.username)
+        p.pack_string(self.password)
         return p.finish()
 
 class LoginReply(BaseMessage):

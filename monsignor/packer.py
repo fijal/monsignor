@@ -12,8 +12,11 @@ class Packer(object):
         self.buf = StringIO()
 
     def pack_string(self, s):
-        self.pack_int(len(s))
-        self.buf.write(s)
+        if not s:
+            self.pack_int(0)
+        else:
+            self.pack_int(len(s))
+            self.buf.write(s)
 
     def pack_byte(self, b):
         self.buf.write(struct.pack("b", b))
@@ -39,8 +42,11 @@ class Unpacker(object):
     def unpack_string(self):
         length = self.unpack_int()
         self._check_size(length)
-        retval = self.buf[self.pos:self.pos + length]
-        self.pos += length
+        if not length:
+            retval = None
+        else:
+            retval = self.buf[self.pos:self.pos + length]
+            self.pos += length
         return retval
 
     def unpack_int(self):

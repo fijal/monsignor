@@ -14,11 +14,11 @@ class TestServerClient(TestCase):
     @inlineCallbacks
     def test_server_basic(self):
         endpoint = TCP4ServerEndpoint(reactor, 0)
-        server = MonsignorServerFactory()
+        server = MonsignorServerFactory({"bob": "p"})
         port = yield endpoint.listen(server)
         addr = port.getHost()
         client_endpoint = TCP4ClientEndpoint(reactor, "localhost", addr.port)
-        client_prot = yield client_endpoint.connect(MonsignorClientFactory("bob"))
+        client_prot = yield client_endpoint.connect(MonsignorClientFactory("bob", "p"))
         d = Deferred()
         client_prot._waiting_deferred = d
         client_prot.disconnect()
@@ -28,12 +28,12 @@ class TestServerClient(TestCase):
     @inlineCallbacks
     def test_send_message_to_self(self):
         endpoint = TCP4ServerEndpoint(reactor, 0)
-        server = MonsignorServerFactory()
+        server = MonsignorServerFactory({"bob": "p"})
         port = yield endpoint.listen(server)
         addr = port.getHost()
         client_endpoint = TCP4ClientEndpoint(reactor, "localhost", addr.port)
-        client_prot = yield client_endpoint.connect(MonsignorClientFactory("bob"))
-
+        client_prot = yield client_endpoint.connect(
+            MonsignorClientFactory("bob", "p"))
         client_prot.send_message(Message("bob", "foo"))
         res = yield client_prot.poll_message()
         assert res.username == "bob"
@@ -53,12 +53,14 @@ class TestServerClient(TestCase):
     @inlineCallbacks
     def test_send_messages_two_clients(self):
         endpoint = TCP4ServerEndpoint(reactor, 0)
-        server = MonsignorServerFactory()
+        server = MonsignorServerFactory({"bob": "p", "alice": "p2"})
         port = yield endpoint.listen(server)
         addr = port.getHost()
         client_endpoint = TCP4ClientEndpoint(reactor, "localhost", addr.port)
-        client_prot = yield client_endpoint.connect(MonsignorClientFactory("bob"))
-        client_prot2 = yield client_endpoint.connect(MonsignorClientFactory("alice"))
+        client_prot = yield client_endpoint.connect(
+            MonsignorClientFactory("bob", "p"))
+        client_prot2 = yield client_endpoint.connect(
+            MonsignorClientFactory("alice", "p2"))
         res = yield client_prot2.poll_message()
         assert res.username == "alice"
         res = yield client_prot.poll_message()

@@ -8,8 +8,9 @@ from monsignor.protocol import MonsignorProtocol
 class MonsignorClientProtocol(MonsignorProtocol):
     _msg_deferred = None
     
-    def __init__(self, factory, username):
+    def __init__(self, username, password):
         self.username = username
+        self.password = password
         self.msgs = deque()
 
     def disconnect(self):
@@ -31,15 +32,16 @@ class MonsignorClientProtocol(MonsignorProtocol):
             self.msgs.append(unpack(data))
 
     def connectionMade(self):
-        self.send_message(LoginMessage(self.username))
+        self.send_message(LoginMessage(self.username, self.password))
 
     def connectionLost(self, reason):
         if hasattr(self, '_waiting_deferred'):
             self._waiting_deferred.callback(None)
 
 class MonsignorClientFactory(ClientFactory):
-    def __init__(self, username):
+    def __init__(self, username, password):
         self.username = username
+        self.password = password
     
     def buildProtocol(self, addr):
-        return MonsignorClientProtocol(self, self.username)
+        return MonsignorClientProtocol(self.username, self.password)
